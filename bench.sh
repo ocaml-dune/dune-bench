@@ -2,7 +2,7 @@
 
 set -e
 
-if [[ $# -gt 1 ]]; then
+if [[ $# -gt 0 ]]; then
     DUNE="$1"
 else
     DUNE=dune

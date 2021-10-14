@@ -15,16 +15,23 @@ include struct
            with module Location     := Location
            with module Longident    := Longident
            with module Parse        := Parse
-           with module Parser       := Parser
            with module Parsetree    := Parsetree
            with module Pprintast    := Pprintast
            with module Syntaxerr    := Syntaxerr
           )
 end (** @inline *)
 
-(** Includes the overrides from Ppxlib_ast, as well as all the Ast definitions since we
-    need them in every single ppx *)
-include Ppxlib_ast
+(** Expose some modules from Ppxlib_ast;
+    in particular, overwrite some of the modules above *)
+module Ast                = Ppxlib_ast.Ast
+module Ast_helper         = Ppxlib_ast.Ast_helper
+module Asttypes           = Ppxlib_ast.Asttypes
+module Parse              = Ppxlib_ast.Parse
+module Parsetree          = Ppxlib_ast.Parsetree
+module Pprintast          = Ppxlib_ast.Pprintast
+module Selected_ast       = Ppxlib_ast.Selected_ast
+
+(** Include all the Ast definitions since we need them in every single ppx *)
 include Ast
 
 module Ast_builder         = Ast_builder
@@ -39,6 +46,7 @@ module Driver              = Driver
 module Expansion_context   = Expansion_context
 module Extension           = Extension
 module File_path           = File_path
+module Keyword             = Keyword
 module Loc                 = Loc
 module Location            = Location
 module Longident           = Longident
@@ -46,6 +54,7 @@ module Merlin_helpers      = Merlin_helpers
 module Reserved_namespaces = Name.Reserved_namespaces
 module Spellcheck          = Spellcheck
 module Quoter              = Quoter
+module Ast_io              = Utils.Ast_io.Read_bin 
 
 include Common
 

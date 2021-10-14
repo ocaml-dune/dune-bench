@@ -73,6 +73,15 @@ module Ast_io = struct
     | Possibly_source of Kind.t * string
     | Necessarily_binary
 
+  let read_error_to_string (error : read_error) =
+    match error with
+    | Not_a_binary_ast ->  "Error: Not a binary ast"
+    | Unknown_version (s, _) ->  ("Error: Unknown version " ^ s)
+    | Source_parse_error (loc, _) ->
+      ("Source parse error:" ^ Location.Error.message loc)
+    | System_error (loc, _) ->
+      ("System error: " ^ Location.Error.message loc)
+
   let parse_source_code ~(kind : Kind.t) ~input_name ~prefix_read_from_source ic =
     (* The input version is determined by the fact that the input will get parsed by
        the current compiler Parse module *)
@@ -98,7 +107,7 @@ module Ast_io = struct
         ; pos_bol   = 0
         ; pos_cnum  = 0
         };
-      Lexer.skip_hash_bang lexbuf;
+      Skip_hash_bang.skip_hash_bang lexbuf;
       let ast : Intf_or_impl.t =
         match kind with
         | Intf -> Intf (Parse.interface      lexbuf)
@@ -109,7 +118,7 @@ module Ast_io = struct
       | None -> raise exn
       | Some error -> Error (Source_parse_error (error, input_version)))
 
-  let magic_length = String.length Ocaml_common.Config.ast_impl_magic_number
+  let magic_length = String.length Astlib.Config.ast_impl_magic_number
 
   let read_magic ic =
     let buf = Bytes.create magic_length in
@@ -156,11 +165,11 @@ module Ast_io = struct
           if
             String.equal
               (String.sub s ~pos:0 ~len:9)
-              (String.sub Ocaml_common.Config.ast_impl_magic_number ~pos:0
+              (String.sub Astlib.Config.ast_impl_magic_number ~pos:0
                 ~len:9)
             || String.equal
                 (String.sub s ~pos:0 ~len:9)
-                (String.sub Ocaml_common.Config.ast_intf_magic_number ~pos:0
+                (String.sub Astlib.Config.ast_intf_magic_number ~pos:0
                     ~len:9)
             then Error (Unknown_version (s, fall_back_input_version))
             else (handle_non_binary s))
@@ -187,7 +196,7 @@ module Ast_io = struct
         let sg =
           if add_ppx_context then
             Selected_ast.To_ocaml.copy_signature sg
-            |> Ocaml_common.Ast_mapper.add_ppx_context_sig ~tool_name:"ppx_driver"
+            |> Astlib.Ast_mapper.add_ppx_context_sig ~tool_name:"ppx_driver"
             |> Ocaml_to_input.copy_signature
           else Ppxlib_to_input.copy_signature sg
         in
@@ -198,13 +207,39 @@ module Ast_io = struct
         let st =
           if add_ppx_context then
             Selected_ast.To_ocaml.copy_structure st
-            |> Ocaml_common.Ast_mapper.add_ppx_context_str ~tool_name:"ppx_driver"
+            |> Astlib.Ast_mapper.add_ppx_context_str ~tool_name:"ppx_driver"
             |> Ocaml_to_input.copy_structure
           else Ppxlib_to_input.copy_structure st
         in
         output_string oc Input_version.Ast.Config.ast_impl_magic_number;
         output_value oc input_name;
         output_value oc st
+
+    module Read_bin = struct
+    type ast =
+    | Intf of signature
+    | Impl of structure
+
+    type t = {ast: ast ; input_name : string }
+
+    let read_binary fn =
+      match
+        In_channel.with_file fn ~f:(from_channel ~input_kind:Necessarily_binary)
+      with
+      | Ok { ast; input_name; _ } ->
+          let ast =
+            match ast with
+            | Impl structure -> Impl structure
+            | Intf signature -> Intf signature
+          in
+          Ok { ast; input_name }
+      | Error e -> Error (read_error_to_string e)
+
+    let get_ast t = t.ast
+
+    let get_input_name t = t.input_name
+
+  end
 end
 
 module System = struct

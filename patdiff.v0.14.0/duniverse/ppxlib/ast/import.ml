@@ -91,28 +91,16 @@ end
 
 module Selected_ast = Select_ast(Ocaml)
 
-(* Modules from migrate_parsetree *)
+(* Modules from astlib *)
 module Parsetree  = Selected_ast.Ast.Parsetree
 module Asttypes   = Selected_ast.Ast.Asttypes
 
 module Ast_helper = Ast_helper_lite
 
-module Location   = struct
-  include Ocaml_common.Location
-  include Location_helper
-end
-
-module Lexer      = struct
-  include Ocaml_common.Lexer
-  include Lexer_helper
-end
-
-module Syntaxerr  = struct
-  include Ocaml_common.Syntaxerr
-end
+module Location   = Astlib.Location
 
 module Parse = struct
-  include Ocaml_common.Parse
+  include Astlib.Parse
   module Of_ocaml = Versions.Convert(Ocaml)(Js)
   let implementation lexbuf = implementation lexbuf |> Of_ocaml.copy_structure
   let interface lexbuf = interface lexbuf |> Of_ocaml.copy_signature
@@ -123,19 +111,5 @@ module Parse = struct
   let pattern lexbuf = pattern lexbuf |> Of_ocaml.copy_pattern
 end
 
-module Parser = struct
-  include Ocaml_common.Parser
-  module Of_ocaml = Versions.Convert(Ocaml)(Js)
-  let use_file lexer lexbuf = use_file lexer lexbuf |> List.map Of_ocaml.copy_toplevel_phrase
-  let toplevel_phrase lexer lexbuf = toplevel_phrase lexer lexbuf |> Of_ocaml.copy_toplevel_phrase
-  let parse_pattern lexer lexbuf = parse_pattern lexer lexbuf |> Of_ocaml.copy_pattern
-  let parse_expression lexer lexbuf = parse_expression lexer lexbuf |> Of_ocaml.copy_expression
-  let parse_core_type lexer lexbuf = parse_core_type lexer lexbuf |> Of_ocaml.copy_core_type
-  let interface lexer lexbuf = interface lexer lexbuf |> Of_ocaml.copy_signature
-  let implementation lexer lexbuf = implementation lexer lexbuf |> Of_ocaml.copy_structure
-end
-
-(* Modules imported directly from the compiler *)
-module Longident  = Ocaml_common.Longident
-module Misc       = Ocaml_common.Misc
-module Warnings   = Ocaml_common.Warnings
+(* Modules imported directly from the Astlib *)
+module Longident  = Astlib.Longident

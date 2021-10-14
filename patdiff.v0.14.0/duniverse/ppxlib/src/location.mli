@@ -14,6 +14,9 @@ type t = location =
 (** Return an empty ghost range located in a given file. *)
 val in_file : string -> t
 
+(** Set the [pos_fname] both in [loc_start] and [loc_end]. Leave the rest as is. *)
+val set_filename : t -> string -> t
+
 (** An arbitrary value of type [t]; describes an empty ghost range. *)
 val none : t
 
@@ -50,7 +53,7 @@ module Error : sig
   type t
 
   val make : loc:location -> string -> sub:(location * string) list -> t
-  val createf : loc:location -> ('a, unit, string, t) format4 -> 'a
+  val createf : loc:location -> ('a, Caml.Format.formatter, unit, t) format4 -> 'a
 
   val message : t -> string
   val set_message : t -> string -> t
@@ -70,7 +73,11 @@ module Error : sig
      same as [Location.raise_errorf]. *)
   val raise : t -> 'a
 
+  (** Update where the error is located. The old location will be overwritten. *)
   val update_loc : t -> location -> t
+
+  (** Find out where the error is located. *)
+  val get_location : t -> location
 end with type location := t
 
 exception Error of Error.t

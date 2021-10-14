@@ -35,3 +35,45 @@ let add_dummy_user_for_values = object
     in
     loop (super#structure st) []
 end
+
+let binds_module_names = object
+  inherit [bool] Ast_traverse.fold as super
+
+  method! module_binding mb acc =
+    match mb.pmb_name.txt with
+    | Some (_ : string) -> true
+    | None -> super#module_binding mb acc
+
+  method! module_declaration md acc =
+    match md.pmd_name.txt with
+    | Some (_ : string) -> true
+    | None -> super#module_declaration md acc
+
+  method! module_substitution ms _ =
+    match ms.pms_name.txt with
+    | (_ : string) -> true
+
+  method! functor_parameter fp acc =
+    match fp with
+    | Unit -> acc
+    | Named (name, _) ->
+      match name.txt with
+      | Some (_ : string) -> true
+      | None -> super#functor_parameter fp acc
+
+  method! pattern pat acc =
+    match pat.ppat_desc with
+    | Ppat_unpack name ->
+      (match name.txt with
+       | Some (_ : string) -> true
+       | None -> acc)
+    | _ -> super#pattern pat acc
+
+  method! expression expr acc =
+    match expr.pexp_desc with
+    | Pexp_letmodule (name, _, _) ->
+      (match name.txt with
+       | Some (_ : string) -> true
+       | None -> super#expression expr acc)
+    | _ -> super#expression expr acc
+end

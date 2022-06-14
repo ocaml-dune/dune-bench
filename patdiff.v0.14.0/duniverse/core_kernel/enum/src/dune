@@ -1,3 +1,0 @@
-(library (name enum) (public_name core_kernel.enum)
- (preprocess (pps ppx_jane -annotated-ignores -check-doc-comments))
- (libraries core_kernel))

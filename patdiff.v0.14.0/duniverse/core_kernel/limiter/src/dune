@@ -1,2 +1,0 @@
-(library (name limiter) (public_name core_kernel.limiter)
- (libraries core_kernel moption) (preprocess (pps ppx_jane)))

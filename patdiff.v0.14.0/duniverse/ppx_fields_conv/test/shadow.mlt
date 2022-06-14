@@ -1,5 +1,0 @@
-type t = { map : unit } [@@deriving fields]
-[%%expect{|
-Line _, characters _-_:
-Error: ppx_fields_conv: field name "map" conflicts with one of the generated functions
-|}]

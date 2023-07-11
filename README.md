@@ -16,12 +16,12 @@ What is it?
 
 At the moment, this a build of
 [patdiff](https://github.com/janestreet/patdiff) and all its reverse
-dependencies. The repository was constructed as follow:
+dependencies. The repository was constructed as follow:s
 
-
-```
-$ opam source patdiff.v0.14.0
-$ cd patdiff.v0.14.0
-$ opam monorepo lock --recurse-opam --build-only
+```console
+$ opam repository add dune-universe git+https://github.com/dune-universe/opam-overlays.git
+$ opam source patdiff.v0.16.0
+$ cd patdiff.v0.16.0
+$ opam monorepo lock --build-only --ocaml-version 4.14.1
 $ opam monorepo pull
 ```
